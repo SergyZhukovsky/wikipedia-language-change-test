@@ -5,6 +5,7 @@ export default defineConfig({
   testDir: '../src/tests',
   timeout: 60_000,
   fullyParallel: false,
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: [
@@ -13,13 +14,13 @@ export default defineConfig({
   ],
   use: {
     baseURL: config.baseURL,
-    trace: 'on',
+    trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], headless: false },
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 });

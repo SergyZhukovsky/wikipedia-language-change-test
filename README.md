@@ -1,73 +1,40 @@
 # Wikipedia Language Change — Automated Test
 
-Playwright + TypeScript automated test that verifies an authenticated Wikipedia user can change their interface language via Preferences.
+Playwright + TypeScript automated test that verifies an authenticated Wikipedia user can change their interface language via Preferences → User profile → Internationalisation.
 
-## Project Structure
+## Test Case (TC-001)
 
-```
-src/
-├── api/
-│   └── wiki-auth.ts        # MediaWiki clientlogin API authentication
-├── fixture/
-│   └── fixture.ts           # Playwright test fixtures (Page Object injection)
-├── pages/
-│   ├── login.page.ts        # LoginPage — authentication & login verification
-│   └── preferences-tab.page.ts  # PreferencesPage — language settings management
-├── tests/
-│   └── change-language.spec.ts
-└── config.ts                # Environment-based configuration
-```
-
-## Test Case
-
-| ID | TC-001 |
-|---|---|
-| **Title** | Change Wikipedia interface language |
-| **Preconditions** | Valid Wikipedia account with confirmed email |
+**Preconditions:** Valid Wikipedia account with confirmed email, user is logged in.
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Log in via API with valid credentials | Session cookies set |
-| 2 | Verify login success | Username visible in the header |
+| 1 | Log in via MediaWiki API | Session cookies set |
+| 2 | Navigate to Main Page, verify login | Username visible in user menu |
 | 3 | Navigate to Special:Preferences | Preferences page loads |
-| 4 | Store current language, pick random different one | Available languages fetched from dropdown |
-| 5 | Change language to the randomly selected one | Dropdown value updates |
-| 6 | Click Save | Page reloads with new language applied |
-| 7 | Assert language changed | Current language matches selected |
-| 8 | Revert to original language | Dropdown value updates |
-| 9 | Click Save | Page reloads |
-| 10 | Assert original language restored | Language matches original value |
+| 4 | Go to User profile tab | Tab is active (`aria-selected="true"`) |
+| 5 | Store current language, pick a random different one | Language selected from dropdown |
+| 6 | Change language and click Save | Page reloads, setting persisted |
+| 7 | Navigate to Main Page | `<html lang>` matches selected language |
 
 ## Prerequisites
 
-- **Docker** and **Docker Compose** installed
-- A **Wikipedia account** (create at https://en.wikipedia.org/wiki/Special:CreateAccount)
+- **Docker** and **Docker Compose** — for containerized execution
+- **Node.js v18+** — for local execution
+- **Wikipedia account** — [create here](https://en.wikipedia.org/wiki/Special:CreateAccount), confirm email, make at least one edit
 
 ## Setup
 
-### 1. Create a Wikipedia account
-
-If you don't have one yet, register at https://en.wikipedia.org/wiki/Special:CreateAccount.
-
-**Important:** after creating a new account, you must do the following before tests will work:
-
-1. **Confirm your email** — check your inbox and click the confirmation link
-2. **Make at least one edit** — new accounts with zero edits may trigger additional CAPTCHA checks
-3. **Wait a few minutes** — Wikipedia may temporarily restrict new accounts from rapid API logins
-
-The test uses the MediaWiki `clientlogin` API to authenticate. This avoids the CAPTCHA on the standard login form, but Wikipedia may still reject logins from brand-new accounts with no activity.
-
-### 2. Configure credentials
-
 ```bash
-# Clone the repository
-git clone <repo-url> && cd test
-
-# Create .env from template
+git clone https://github.com/SergyZhukovsky/wikipedia-language-change-test.git
+cd wikipedia-language-change-test
 cp .env.example .env
+```
 
-# Edit .env and set WIKI_USERNAME and WIKI_PASSWORD
-# Use your main Wikipedia username and password (not email)
+Edit `.env` and set your Wikipedia credentials (username, not email):
+
+```
+WIKI_USERNAME=YourUsername
+WIKI_PASSWORD=YourPassword
 ```
 
 ## Running Tests
@@ -75,7 +42,7 @@ cp .env.example .env
 ### Docker (recommended)
 
 ```bash
-bash run-tests.sh
+docker compose -f config/docker-compose.yml up --build
 ```
 
 ### Local
@@ -84,31 +51,27 @@ bash run-tests.sh
 npm install
 npx playwright install --with-deps chromium
 npm test
-
-# Headed mode (visible browser)
-npm run test:headed
 ```
 
-## Report
+## Test Report
 
-After running tests, open the HTML report:
+HTML report is generated in `playwright-report/` after each run. When running in Docker, the report is automatically available on the host via volume mount.
 
 ```bash
-# Local
-npm run report
-
-# Or open directly
-open playwright-report/index.html
+npx playwright show-report
 ```
 
-The report is located at `playwright-report/index.html`.
+## Project Structure
 
-## Trace
-
-Trace is enabled for every test run (`trace: 'on'`). Trace files are saved in `test-results/` and can be viewed with:
-
-```bash
-npx playwright show-trace test-results/<test-folder>/trace.zip
 ```
-
-Or open them in the [Trace Viewer](https://trace.playwright.dev) online.
+config/
+├── Dockerfile               # Playwright image with browsers
+├── docker-compose.yml       # Container config, .env, volume mounts
+└── playwright.config.ts     # Test runner settings
+src/
+├── api/                     # API-based authentication (clientlogin)
+├── fixture/                 # Playwright fixtures (page object injection)
+├── pages/                   # Page Objects (BasePage, HomePage, SettingsPage, UserProfileTab)
+├── tests/                   # Test specs
+└── config.ts                # Environment config (dotenv)
+```

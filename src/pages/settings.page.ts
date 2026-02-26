@@ -1,31 +1,26 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 import { BasePage } from './base.page';
-import { PreferencesComponent } from './preferences-tab.page';
+import { UserProfileTab } from './user-profile-tab.page';
+import { config } from '../config';
 
 export class SettingsPage extends BasePage {
-  private readonly heading: Locator;
-  private readonly appearanceTab: Locator;
+  private readonly userProfileTabButton: Locator;
 
-  readonly preferences: PreferencesComponent;
+  readonly userProfile: UserProfileTab;
 
   constructor(page: Page) {
     super(page);
-    this.heading = page.locator('#firstHeading');
-    this.appearanceTab = page.locator('.oo-ui-tabOptionWidget').first();
-    // this.appearanceTab = page.locator('#ooui-php-538').getByText('Profilo utente');
-    this.preferences = new PreferencesComponent(page);
+    this.userProfileTabButton = page.locator('.oo-ui-tabOptionWidget').first();
+    this.userProfile = new UserProfileTab(page);
   }
 
   get url(): RegExp {
-    return new RegExp('Special:Preferences');
+    return new RegExp(config.pages.preferences);
   }
 
-  async getHeadingText(): Promise<string> {
-    return (await this.heading.textContent()) ?? '';
-  }
-
-  async goToAppearanceTab() {
-    await this.appearanceTab.click();
+  async goToUserProfileTab() {
+    await this.userProfileTabButton.click();
     await this.waitForPageLoad();
+    await expect(this.userProfileTabButton).toHaveAttribute('aria-selected', 'true');
   }
 }

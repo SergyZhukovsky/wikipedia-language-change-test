@@ -10,6 +10,6 @@ export class AuthService {
     if (cookies.length > 0) {
       await this.page.context().addCookies(cookies);
     }
-    await this.page.goto(config.pages.mainPage, { waitUntil: 'networkidle' });
+    await this.page.goto(config.pages.mainPage, { waitUntil: 'domcontentloaded' });
   }
 }

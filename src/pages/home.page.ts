@@ -8,7 +8,6 @@ export class HomePage extends BasePage {
   private readonly searchInput: Locator;
   private readonly mainContent: Locator;
   private readonly logo: Locator;
-  private readonly userMenuPreferences: Locator;
   private readonly preferencesLink: Locator;
 
   constructor(page: Page) {
@@ -18,7 +17,6 @@ export class HomePage extends BasePage {
     this.searchInput = page.locator('#searchInput');
     this.mainContent = page.locator('#mw-content-text');
     this.logo = page.locator('.mw-logo');
-    this.userMenuPreferences = page.locator('#p-vector-user-menu-preferences');
     this.preferencesLink = page.locator('#pt-preferences a');
   }
 
@@ -44,7 +42,7 @@ export class HomePage extends BasePage {
   }
 
   async getInterfaceLanguage(): Promise<string> {
-    return await this.userMenuPreferences.getAttribute('lang') ?? '';
+    return await this.page.locator('html').getAttribute('lang') ?? '';
   }
 
   async goToSettings() {
